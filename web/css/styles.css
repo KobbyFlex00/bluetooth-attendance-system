@@ -1,0 +1,39 @@
+/* Custom styles for Bluetooth Attendance System */
+/* Bootstrap handles most responsive design */
+
+.page {
+  padding: 20px 0;
+}
+
+.card {
+  margin-bottom: 20px;
+}
+
+.table-responsive {
+  margin-top: 20px;
+}
+
+#attendanceChart {
+  max-width: 100%;
+  height: 300px;
+}
+
+/* Hide file input */
+#csvFile {
+  display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .card-body h5 {
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    margin-bottom: 5px;
+  }
+}
