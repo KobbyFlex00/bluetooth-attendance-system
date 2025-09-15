@@ -1,3 +1,7 @@
+# bluetooth-attendance-system
+Manual roll calls waste time, proxy attendance is common. A Bluetooth-based attendance web app that automates roll calls, supports manual marking, and generates reports.
+>>>>>>> 4bb7dc3274f69a6056a2f6567686b8deebb5aa86
+=======
 # Bluetooth-Based Automated Classroom Attendance System
 
 A professional, responsive web application for automated classroom attendance logging using Bluetooth simulation.
@@ -61,3 +65,7 @@ A professional, responsive web application for automated classroom attendance lo
 - Bluetooth scanning uses Web Bluetooth API (Chrome required for real devices; simulation for demo).
 - Data stored in SQLite (`python_backend/data/attendance.db`).
 - CSV file: `python_backend/data/cleaned_class_list.csv`.
+=======
+# bluetooth-attendance-system
+Manual roll calls waste time, proxy attendance is common. A Bluetooth-based attendance web app that automates roll calls, supports manual marking, and generates reports.
+>>>>>>> 4bb7dc3274f69a6056a2f6567686b8deebb5aa86
