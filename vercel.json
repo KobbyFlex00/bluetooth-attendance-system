@@ -9,11 +9,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "python_backend/app.py"
+      "dest": "/python_backend/app.py"
     },
     {
       "src": "/(.*)",
-      "dest": "web/$1"
+      "dest": "/web/$1"
     }
   ]
 }

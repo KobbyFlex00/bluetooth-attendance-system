@@ -27,3 +27,4 @@ node_modules/
 attendance.db
 data/attendance.db
 python_backend/data/attendance.db
+.vercel
