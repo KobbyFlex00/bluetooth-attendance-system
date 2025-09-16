@@ -2,78 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bluetooth Attendance System</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bluetooth Attendance</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
+    <div class="container-fluid">
       <a class="navbar-brand" href="#">Bluetooth Attendance</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link active" href="#dashboard" data-page="dashboard">Dashboard</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#students" data-page="students">Students</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#attendance" data-page="attendance">Attendance</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#reports" data-page="reports">Reports</a>
-          </li>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0" id="navTabs">
+          <li class="nav-item"><a class="nav-link active" href="#" data-page="dashboard">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-page="students">Students</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-page="attendance">Attendance</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-page="reports">Reports</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <div class="container mt-4">
+  <main class="container my-4">
     <!-- Dashboard Page -->
-    <div id="dashboard-page" class="page active">
+    <section id="dashboardPage" class="page">
       <h2>Dashboard</h2>
-      <div class="row">
+      <div class="row g-3">
         <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Total Students</h5>
-              <p class="card-text" id="totalStudents">0</p>
-            </div>
+          <div class="card p-3">
+            <h5>Total Students</h5>
+            <p id="totalStudents">0</p>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Today's Attendance</h5>
-              <p class="card-text" id="todayAttendance">Present: 0, Absent: 0</p>
-            </div>
+          <div class="card p-3">
+            <h5>Today's Attendance</h5>
+            <p id="todaysAttendance">Present: 0, Absent: 0</p>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Active Session</h5>
-              <p class="card-text" id="activeSession">None</p>
-            </div>
+          <div class="card p-3">
+            <h5>Active Session</h5>
+            <p id="activeSession">None</p>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Students Page -->
-    <div id="students-page" class="page" style="display:none;">
+    <section id="studentsPage" class="page d-none">
       <h2>Students</h2>
       <div class="mb-3">
-        <input type="text" id="studentSearch" class="form-control" placeholder="Search students...">
+        <label for="csvUpload" class="form-label">Upload CSV</label>
+        <input class="form-control" type="file" id="csvUpload" accept=".csv" />
       </div>
-      <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addStudentModal">Add Student</button>
-      <button class="btn btn-secondary mb-3" id="uploadCsvBtn">Upload CSV</button>
-      <input type="file" id="csvFile" accept=".csv">
+      <button class="btn btn-primary mb-3" id="addStudentBtn">Add Student</button>
+      <input type="text" id="studentSearch" class="form-control mb-3" placeholder="Search by ID or Name" />
       <div class="table-responsive">
         <table class="table table-striped" id="studentsTable">
           <thead>
@@ -83,45 +70,31 @@
               <th>MAC</th>
             </tr>
           </thead>
-          <tbody id="studentsBody">
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
-    </div>
+    </section>
 
     <!-- Attendance Page -->
-    <div id="attendance-page" class="page" style="display:none;">
+    <section id="attendancePage" class="page d-none">
       <h2>Attendance</h2>
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <input id="sessionName" type="text" class="form-control" placeholder="Session name">
-        </div>
-        <div class="col-md-6">
-          <button id="startSessionBtn" class="btn btn-success">Start Session</button>
-          <button id="endSessionBtn" class="btn btn-danger">End Session</button>
-        </div>
+      <div class="mb-3">
+        <input id="sessionName" type="text" class="form-control d-inline-block w-auto" placeholder="Session name" />
+        <button class="btn btn-success" id="startSessionBtn">Start Session</button>
+        <button class="btn btn-danger" id="endSessionBtn">End Session</button>
       </div>
       <div class="mb-3">
-        <span id="activeSessionBadge" class="badge bg-secondary">No active session</span>
+        <button class="btn btn-primary" id="startScanBtn">Start Bluetooth Scan</button>
+        <button class="btn btn-secondary" id="refreshBtn">Refresh Attendance</button>
+        <button class="btn btn-outline-primary" id="exportBtn">Export</button>
+        <select id="exportFormat" class="form-select d-inline-block w-auto ms-2" aria-label="Select export format">
+          <option value="csv">CSV</option>
+          <option value="pdf">PDF</option>
+          <option value="xlsx">Excel</option>
+        </select>
       </div>
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <button id="startScanBtn" class="btn btn-primary">Start Bluetooth Scan</button>
-          <button id="manualMarkBtn" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#manualMarkModal">Manual Mark</button>
-        </div>
-        <div class="col-md-6">
-          <select id="scopeSelect" class="form-select">
-            <option value="session">Current session</option>
-            <option value="today">Today</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-      </div>
-      <div class="mb-3">
-        <span id="status" class="text-muted"></span>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-striped" id="attendanceTable">
+      <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+        <table class="table table-bordered" id="attendanceTable">
           <thead>
             <tr>
               <th>Timestamp</th>
@@ -131,92 +104,82 @@
               <th>Session</th>
             </tr>
           </thead>
-          <tbody id="attendanceBody">
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
-    </div>
+      <button class="btn btn-outline-secondary mt-3" id="manualMarkBtn">Manual Mark Attendance</button>
+    </section>
 
     <!-- Reports Page -->
-    <div id="reports-page" class="page" style="display:none;">
+    <section id="reportsPage" class="page d-none">
       <h2>Reports</h2>
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <select id="sessionSelect" class="form-select">
-            <option value="">Select Session</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <button id="exportPdfBtn" class="btn btn-primary">Export PDF</button>
-          <button id="exportExcelBtn" class="btn btn-success">Export Excel</button>
-        </div>
+      <div class="mb-3">
+        <label for="sessionSelect" class="form-label">Select Session</label>
+        <select id="sessionSelect" class="form-select w-auto d-inline-block"></select>
+        <button class="btn btn-primary ms-2" id="exportReportBtn">Export Report</button>
+        <select id="reportFormat" class="form-select w-auto d-inline-block ms-2" aria-label="Select report export format">
+          <option value="pdf">PDF</option>
+          <option value="xlsx">Excel</option>
+          <option value="csv">CSV</option>
+        </select>
       </div>
-      <div class="row">
-        <div class="col-md-6">
-          <h4>Summary</h4>
-          <p id="summaryText">Select a session to view summary.</p>
-        </div>
-        <div class="col-md-6">
-          <canvas id="attendanceChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
+      <canvas id="summaryChart" style="max-width: 600px;"></canvas>
+    </section>
+  </main>
 
-  <!-- Modals -->
   <!-- Add Student Modal -->
-  <div class="modal fade" id="addStudentModal" tabindex="-1">
+  <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <form class="modal-content" id="addStudentForm">
         <div class="modal-header">
-          <h5 class="modal-title">Add Student</h5>
+          <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form id="addStudentForm">
-            <div class="mb-3">
-              <label for="studentId" class="form-label">Student ID</label>
-              <input type="text" class="form-control" id="studentId" required>
-            </div>
-            <div class="mb-3">
-              <label for="studentName" class="form-label">Name</label>
-              <input type="text" class="form-control" id="studentName" required>
-            </div>
-            <div class="mb-3">
-              <label for="studentMac" class="form-label">MAC Address (optional)</label>
-              <input type="text" class="form-control" id="studentMac">
-            </div>
-          </form>
+          <div class="mb-3">
+            <label for="studentIdInput" class="form-label">Student ID</label>
+            <input type="text" class="form-control" id="studentIdInput" required />
+          </div>
+          <div class="mb-3">
+            <label for="studentNameInput" class="form-label">Name</label>
+            <input type="text" class="form-control" id="studentNameInput" required />
+          </div>
+          <div class="mb-3">
+            <label for="studentMacInput" class="form-label">MAC Address (optional)</label>
+            <input type="text" class="form-control" id="studentMacInput" />
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="saveStudentBtn">Save</button>
+          <button type="submit" class="btn btn-primary">Add Student</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- Manual Mark Modal -->
-  <div class="modal fade" id="manualMarkModal" tabindex="-1">
+  <!-- Manual Mark Attendance Modal -->
+  <div class="modal fade" id="manualMarkModal" tabindex="-1" aria-labelledby="manualMarkModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <form class="modal-content" id="manualMarkForm">
         <div class="modal-header">
-          <h5 class="modal-title">Manual Attendance</h5>
+          <h5 class="modal-title" id="manualMarkModalLabel">Manual Mark Attendance</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form id="manualMarkForm">
-            <div class="mb-3">
-              <label for="manualStudentId" class="form-label">Student ID or Name</label>
-              <input type="text" class="form-control" id="manualStudentId" required>
-            </div>
-          </form>
+          <div class="mb-3">
+            <label for="manualStudentIdInput" class="form-label">Student ID</label>
+            <input type="text" class="form-control" id="manualStudentIdInput" />
+          </div>
+          <div class="mb-3">
+            <label for="manualStudentNameInput" class="form-label">Name</label>
+            <input type="text" class="form-control" id="manualStudentNameInput" />
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="markAttendanceBtn">Mark Attendance</button>
+          <button type="submit" class="btn btn-primary">Mark Attendance</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 

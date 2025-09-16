@@ -1,386 +1,386 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://bluetooth-attendance-backend.onrender.com/api";
 
-let activeSession = null;
-let students = [];
-let sessions = [];
-let attendanceChart = null;
+// Navigation and page management
+const pages = {
+  dashboard: document.getElementById("dashboardPage"),
+  students: document.getElementById("studentsPage"),
+  attendance: document.getElementById("attendancePage"),
+  reports: document.getElementById("reportsPage"),
+};
 
-// ---------- Page Navigation ----------
-function showPage(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-  document.getElementById(pageId).style.display = 'block';
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.querySelector(`[data-page="${pageId.replace('-page', '')}"]`).classList.add('active');
+const navLinks = document.querySelectorAll("#navTabs .nav-link");
+
+function showPage(page) {
+  Object.values(pages).forEach(p => p.classList.add("d-none"));
+  pages[page].classList.remove("d-none");
+  navLinks.forEach(link => {
+    link.classList.toggle("active", link.dataset.page === page);
+  });
 }
 
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', (e) => {
+navLinks.forEach(link => {
+  link.addEventListener("click", e => {
     e.preventDefault();
-    const page = e.target.getAttribute('data-page');
-    showPage(`${page}-page`);
-    loadPageData(page);
+    showPage(link.dataset.page);
   });
 });
 
-// ---------- Helpers ----------
-function setStatus(msg, kind = "muted") {
-  const statusEl = document.getElementById("status");
-  if (statusEl) {
-    statusEl.textContent = msg;
-    statusEl.className = `text-${kind}`;
-  }
+// Dashboard elements
+const totalStudentsEl = document.getElementById("totalStudents");
+const todaysAttendanceEl = document.getElementById("todaysAttendance");
+const activeSessionEl = document.getElementById("activeSession");
+
+// Students page elements
+const studentsTableBody = document.querySelector("#studentsTable tbody");
+const studentSearchInput = document.getElementById("studentSearch");
+const csvUploadInput = document.getElementById("csvUpload");
+const addStudentBtn = document.getElementById("addStudentBtn");
+const addStudentModal = new bootstrap.Modal(document.getElementById("addStudentModal"));
+const addStudentForm = document.getElementById("addStudentForm");
+const studentIdInput = document.getElementById("studentIdInput");
+const studentNameInput = document.getElementById("studentNameInput");
+const studentMacInput = document.getElementById("studentMacInput");
+
+// Attendance page elements
+const sessionNameInput = document.getElementById("sessionName");
+const startSessionBtn = document.getElementById("startSessionBtn");
+const endSessionBtn = document.getElementById("endSessionBtn");
+const startScanBtn = document.getElementById("startScanBtn");
+const refreshBtn = document.getElementById("refreshBtn");
+const exportBtn = document.getElementById("exportBtn");
+const exportFormatSelect = document.getElementById("exportFormat");
+const attendanceTableBody = document.querySelector("#attendanceTable tbody");
+const manualMarkBtn = document.getElementById("manualMarkBtn");
+const manualMarkModal = new bootstrap.Modal(document.getElementById("manualMarkModal"));
+const manualMarkForm = document.getElementById("manualMarkForm");
+const manualStudentIdInput = document.getElementById("manualStudentIdInput");
+const manualStudentNameInput = document.getElementById("manualStudentNameInput");
+
+// Reports page elements
+const sessionSelect = document.getElementById("sessionSelect");
+const exportReportBtn = document.getElementById("exportReportBtn");
+const reportFormatSelect = document.getElementById("reportFormat");
+const summaryChartCtx = document.getElementById("summaryChart").getContext("2d");
+let summaryChart = null;
+
+let activeSession = null;
+let students = [];
+let attendance = [];
+
+// Utility functions
+function setStatus(msg, kind = "info") {
+  // Could add a status display element if needed
+  console.log(`[STATUS] ${kind}: ${msg}`);
 }
 
-function fmt(dt) {
+function fmtDate(dt) {
   if (!dt) return "";
   try {
-    const d = new Date(dt);
-    return d.toLocaleString();
+    return new Date(dt).toLocaleString();
   } catch {
     return dt;
   }
 }
 
-// ---------- Dashboard ----------
-async function loadDashboard() {
+// Fetch and render functions
+async function fetchStudents() {
   try {
-    const [studentsRes, sessionRes] = await Promise.all([
-      fetch(`${API_BASE}/api/students`),
-      fetch(`${API_BASE}/api/session`)
-    ]);
-    const studentsData = await studentsRes.json();
-    const sessionData = await sessionRes.json();
-
-    document.getElementById('totalStudents').textContent = studentsData.length;
-    activeSession = sessionData.active_session;
-    document.getElementById('activeSession').textContent = activeSession ? activeSession.name : 'None';
-
-    // Today's attendance
-    const today = new Date().toISOString().slice(0, 10);
-    const summaryRes = await fetch(`${API_BASE}/api/reports/summary?date=${today}`);
-    const summary = await summaryRes.json();
-    document.getElementById('todayAttendance').textContent = `Present: ${summary.present}, Absent: ${summary.absent}`;
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-// ---------- Students ----------
-async function loadStudents() {
-  try {
-    const res = await fetch(`${API_BASE}/api/students`);
+    const res = await fetch(`${API_BASE}/students`);
     students = await res.json();
-    renderStudents(students);
+    renderStudents();
+    totalStudentsEl.textContent = students.length;
   } catch (e) {
-    console.error(e);
+    setStatus("Failed to load students", "error");
   }
 }
 
-function renderStudents(list) {
-  const tbody = document.getElementById('studentsBody');
-  tbody.innerHTML = '';
-  list.forEach(s => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${s['Student ID']}</td>
-      <td>${s.Name}</td>
-      <td>${s.MAC || ''}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+function renderStudents() {
+  const filter = studentSearchInput.value.toLowerCase();
+  studentsTableBody.innerHTML = "";
+  students.filter(s => s["Student ID"].toLowerCase().includes(filter) || s.Name.toLowerCase().includes(filter))
+    .forEach(s => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${s["Student ID"]}</td>
+        <td>${s.Name}</td>
+        <td>${s.MAC || ""}</td>
+      `;
+      studentsTableBody.appendChild(tr);
+    });
 }
 
-document.getElementById('studentSearch').addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase();
-  const filtered = students.filter(s =>
-    s.Name.toLowerCase().includes(query) ||
-    s['Student ID'].toLowerCase().includes(query)
-  );
-  renderStudents(filtered);
-});
+studentSearchInput.addEventListener("input", renderStudents);
 
-document.getElementById('uploadCsvBtn').addEventListener('click', () => {
-  document.getElementById('csvFile').click();
-});
-
-document.getElementById('csvFile').addEventListener('change', async (e) => {
+csvUploadInput.addEventListener("change", async e => {
   const file = e.target.files[0];
   if (!file) return;
   const text = await file.text();
   try {
-    const res = await fetch(`${API_BASE}/api/students/upload`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ csv: text })
+    const res = await fetch(`${API_BASE}/students/upload`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ csv: text }),
     });
-    const data = await res.json();
     if (res.ok) {
-      setStatus(data.message, 'success');
-      loadStudents();
+      setStatus("CSV uploaded successfully", "ok");
+      await fetchStudents();
     } else {
-      setStatus(data.error, 'danger');
+      const err = await res.json();
+      setStatus(`Upload failed: ${err.error}`, "error");
     }
-  } catch (e) {
-    setStatus('Upload failed', 'danger');
+  } catch (err) {
+    setStatus("Upload failed", "error");
   }
+  csvUploadInput.value = "";
 });
 
-document.getElementById('saveStudentBtn').addEventListener('click', async () => {
-  const id = document.getElementById('studentId').value;
-  const name = document.getElementById('studentName').value;
-  const mac = document.getElementById('studentMac').value;
+addStudentBtn.addEventListener("click", () => {
+  studentIdInput.value = "";
+  studentNameInput.value = "";
+  studentMacInput.value = "";
+  addStudentModal.show();
+});
+
+addStudentForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  const newStudent = {
+    student_id: studentIdInput.value.trim(),
+    name: studentNameInput.value.trim(),
+    mac: studentMacInput.value.trim(),
+  };
   try {
-    const res = await fetch(`${API_BASE}/api/students`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ student_id: id, name, mac })
+    const res = await fetch(`${API_BASE}/students`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newStudent),
     });
-    const data = await res.json();
     if (res.ok) {
-      setStatus(data.message, 'success');
-      loadStudents();
-      bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
-      document.getElementById('addStudentForm').reset();
+      setStatus("Student added", "ok");
+      addStudentModal.hide();
+      await fetchStudents();
     } else {
-      setStatus(data.error, 'danger');
+      const err = await res.json();
+      setStatus(`Add student failed: ${err.error}`, "error");
     }
-  } catch (e) {
-    setStatus('Failed to add student', 'danger');
+  } catch (err) {
+    setStatus("Add student failed", "error");
   }
 });
 
-// ---------- Attendance ----------
-async function loadAttendance() {
-  await fetchActiveSession();
-  await fetchAttendance();
+// Session management
+async function fetchActiveSession() {
+  try {
+    const res = await fetch(`${API_BASE}/session`);
+    const data = await res.json();
+    activeSession = data.active_session || null;
+    updateActiveSessionUI();
+  } catch {
+    activeSession = null;
+    updateActiveSessionUI();
+  }
 }
 
-function renderAttendance(rows) {
-  const tbody = document.getElementById('attendanceBody');
-  tbody.innerHTML = '';
-  rows.forEach(r => {
-    const tr = document.createElement('tr');
+function updateActiveSessionUI() {
+  activeSessionEl.textContent = activeSession ? activeSession.name : "None";
+  if (activeSession) {
+    sessionNameInput.value = activeSession.name;
+  }
+}
+
+startSessionBtn.addEventListener("click", async () => {
+  const name = sessionNameInput.value.trim();
+  try {
+    const res = await fetch(`${API_BASE}/session/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      activeSession = data.active_session;
+      updateActiveSessionUI();
+      setStatus("Session started", "ok");
+      await fetchAttendance();
+    } else {
+      setStatus("Failed to start session", "error");
+    }
+  } catch {
+    setStatus("Failed to start session", "error");
+  }
+});
+
+endSessionBtn.addEventListener("click", async () => {
+  try {
+    const res = await fetch(`${API_BASE}/session/end`, { method: "POST" });
+    if (res.ok) {
+      activeSession = null;
+      updateActiveSessionUI();
+      setStatus("Session ended", "warn");
+      await fetchAttendance();
+    } else {
+      setStatus("No active session to end", "warn");
+    }
+  } catch {
+    setStatus("Failed to end session", "error");
+  }
+});
+
+// Attendance fetching and rendering
+async function fetchAttendance() {
+  try {
+    let url = `${API_BASE}/attendance?limit=500`;
+    if (activeSession) {
+      url += `&session_id=${encodeURIComponent(activeSession.id)}`;
+    }
+    const res = await fetch(url);
+    attendance = await res.json();
+    renderAttendance();
+    await fetchSummary();
+  } catch {
+    setStatus("Failed to load attendance", "error");
+  }
+}
+
+function renderAttendance() {
+  attendanceTableBody.innerHTML = "";
+  attendance.forEach(r => {
+    const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${fmt(r.ts)}</td>
-      <td>${r.student_id || ''}</td>
-      <td>${r.name || ''}</td>
-      <td>${r.mac || ''}</td>
-      <td>${r.session_id ?? ''}</td>
+      <td>${fmtDate(r.ts)}</td>
+      <td>${r.student_id}</td>
+      <td>${r.name}</td>
+      <td>${r.mac || ""}</td>
+      <td>${r.session_id || ""}</td>
     `;
-    tbody.appendChild(tr);
+    attendanceTableBody.appendChild(tr);
   });
 }
 
-async function fetchActiveSession() {
+// Export attendance
+exportBtn.addEventListener("click", () => {
+  if (!activeSession) {
+    alert("Start a session to export attendance.");
+    return;
+  }
+  const format = exportFormatSelect.value;
+  const url = `${API_BASE}/attendance/export?session_id=${encodeURIComponent(activeSession.id)}&format=${format}`;
+  window.open(url, "_blank");
+});
+
+// Bluetooth scan (simulated)
+startScanBtn.addEventListener("click", async () => {
+  alert("Bluetooth scanning simulation not implemented yet.");
+});
+
+// Manual mark attendance modal
+manualMarkBtn.addEventListener("click", () => {
+  manualStudentIdInput.value = "";
+  manualStudentNameInput.value = "";
+  manualMarkModal.show();
+});
+
+manualMarkForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  const data = {
+    student_id: manualStudentIdInput.value.trim(),
+    name: manualStudentNameInput.value.trim(),
+  };
   try {
-    const res = await fetch(`${API_BASE}/api/session`);
-    const data = await res.json();
-    activeSession = data.active_session || null;
-    updateSessionBadge();
-  } catch (e) {
-    activeSession = null;
-    updateSessionBadge();
+    const res = await fetch(`${API_BASE}/attendance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      setStatus("Attendance marked manually", "ok");
+      manualMarkModal.hide();
+      await fetchAttendance();
+    } else {
+      const err = await res.json();
+      setStatus(`Failed to mark attendance: ${err.error}`, "error");
+    }
+  } catch {
+    setStatus("Failed to mark attendance", "error");
+  }
+});
+
+// Reports page
+async function fetchSessions() {
+  try {
+    const res = await fetch(`${API_BASE}/sessions`);
+    const sessions = await res.json();
+    sessionSelect.innerHTML = "";
+    sessions.forEach(s => {
+      const option = document.createElement("option");
+      option.value = s.id;
+      option.textContent = s.name;
+      sessionSelect.appendChild(option);
+    });
+  } catch {
+    setStatus("Failed to load sessions", "error");
   }
 }
 
-async function fetchAttendance() {
-  const scope = document.getElementById('scopeSelect').value;
+exportReportBtn.addEventListener("click", () => {
+  const sessionId = sessionSelect.value;
+  const format = reportFormatSelect.value;
+  if (!sessionId) {
+    alert("Select a session to export report.");
+    return;
+  }
+  const url = `${API_BASE}/attendance/export?session_id=${encodeURIComponent(sessionId)}&format=${format}`;
+  window.open(url, "_blank");
+});
+
+async function fetchSummary() {
   try {
-    let url = `${API_BASE}/api/attendance?limit=500`;
-    if (scope === 'session' && activeSession) {
-      url += `&session_id=${activeSession.id}`;
-    } else if (scope === 'today') {
+    let url = `${API_BASE}/reports/summary`;
+    if (activeSession) {
+      url += `?session_id=${encodeURIComponent(activeSession.id)}`;
+    } else {
       const today = new Date().toISOString().slice(0, 10);
-      url += `&date_from=${today}&date_to=${today}`;
+      url += `?date=${today}`;
     }
     const res = await fetch(url);
     const data = await res.json();
-    renderAttendance(data);
-    setStatus(`Loaded ${data.length} attendance rows.`, 'success');
-  } catch (e) {
-    setStatus('Failed to load attendance.', 'danger');
+    updateDashboardSummary(data);
+    updateSummaryChart(data);
+  } catch {
+    setStatus("Failed to load summary", "error");
   }
 }
 
-function updateSessionBadge() {
-  const badge = document.getElementById('activeSessionBadge');
-  if (activeSession) {
-    badge.textContent = `Active: ${activeSession.name} — started ${fmt(activeSession.start_ts)}`;
-    badge.className = 'badge bg-success';
-  } else {
-    badge.textContent = 'No active session';
-    badge.className = 'badge bg-secondary';
-  }
+function updateDashboardSummary(data) {
+  todaysAttendanceEl.textContent = `Present: ${data.present}, Absent: ${data.absent}`;
 }
 
-async function startSession() {
-  const name = document.getElementById('sessionName').value.trim();
-  try {
-    const res = await fetch(`${API_BASE}/api/session/start`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name })
-    });
-    const data = await res.json();
-    activeSession = data.active_session;
-    updateSessionBadge();
-    setStatus(data.message, 'success');
-    fetchAttendance();
-  } catch (e) {
-    setStatus('Failed to start session.', 'danger');
+function updateSummaryChart(data) {
+  if (summaryChart) {
+    summaryChart.destroy();
   }
+  summaryChart = new Chart(summaryChartCtx, {
+    type: "doughnut",
+    data: {
+      labels: ["Present", "Absent"],
+      datasets: [{
+        data: [data.present, data.absent],
+        backgroundColor: ["#198754", "#dc3545"],
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom" },
+      },
+    },
+  });
 }
 
-async function endSession() {
-  try {
-    const res = await fetch(`${API_BASE}/api/session/end`, { method: 'POST' });
-    const data = await res.json();
-    if (res.ok) {
-      activeSession = null;
-      updateSessionBadge();
-      setStatus(data.message, 'warning');
-      fetchAttendance();
-    } else {
-      setStatus(data.message, 'warning');
-    }
-  } catch (e) {
-    setStatus('Failed to end session.', 'danger');
-  }
-}
-
-async function startBluetoothScan() {
-  if (!navigator.bluetooth) {
-    setStatus('Web Bluetooth not supported.', 'danger');
-    return;
-  }
-  try {
-    setStatus('Requesting Bluetooth device...');
-    const device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true
-    });
-    const mac = device.id || '';
-    const name = device.name || '';
-    const payload = mac ? { mac_address: mac } : { name };
-    const res = await fetch(`${API_BASE}/api/validate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if (res.ok) {
-      if (result.logged) {
-        setStatus(`Logged: ${result.student.Name}`, 'success');
-      } else {
-        setStatus(`Duplicate: ${result.student.Name}`, 'warning');
-      }
-      fetchAttendance();
-    } else {
-      setStatus('Invalid student.', 'danger');
-    }
-  } catch (e) {
-    setStatus('Scan failed.', 'danger');
-  }
-}
-
-document.getElementById('startSessionBtn').addEventListener('click', startSession);
-document.getElementById('endSessionBtn').addEventListener('click', endSession);
-document.getElementById('startScanBtn').addEventListener('click', startBluetoothScan);
-document.getElementById('scopeSelect').addEventListener('change', fetchAttendance);
-
-// ---------- Manual Attendance ----------
-document.getElementById('markAttendanceBtn').addEventListener('click', async () => {
-  const input = document.getElementById('manualStudentId').value.trim();
-  if (!input) return;
-  try {
-    const res = await fetch(`${API_BASE}/api/attendance`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ student_id: input, name: input })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setStatus(data.message, 'success');
-      fetchAttendance();
-      bootstrap.Modal.getInstance(document.getElementById('manualMarkModal')).hide();
-      document.getElementById('manualMarkForm').reset();
-    } else {
-      setStatus(data.error, 'danger');
-    }
-  } catch (e) {
-    setStatus('Failed to mark attendance.', 'danger');
-  }
-});
-
-// ---------- Reports ----------
-async function loadReports() {
-  try {
-    const res = await fetch(`${API_BASE}/api/sessions`);
-    sessions = await res.json();
-    const select = document.getElementById('sessionSelect');
-    select.innerHTML = '<option value="">Select Session</option>';
-    sessions.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = `${s.name} (${fmt(s.start_ts)})`;
-      select.appendChild(opt);
-    });
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-document.getElementById('sessionSelect').addEventListener('change', async (e) => {
-  const sessionId = e.target.value;
-  if (!sessionId) {
-    document.getElementById('summaryText').textContent = 'Select a session.';
-    if (attendanceChart) attendanceChart.destroy();
-    return;
-  }
-  try {
-    const res = await fetch(`${API_BASE}/api/reports/summary?session_id=${sessionId}`);
-    const summary = await res.json();
-    document.getElementById('summaryText').textContent = `Total: ${summary.total_students}, Present: ${summary.present}, Absent: ${summary.absent}`;
-
-    // Chart
-    const ctx = document.getElementById('attendanceChart').getContext('2d');
-    if (attendanceChart) attendanceChart.destroy();
-    attendanceChart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Present', 'Absent'],
-        datasets: [{
-          data: [summary.present, summary.absent],
-          backgroundColor: ['#28a745', '#dc3545']
-        }]
-      }
-    });
-  } catch (e) {
-    console.error(e);
-  }
-});
-
-document.getElementById('exportPdfBtn').addEventListener('click', () => {
-  const sessionId = document.getElementById('sessionSelect').value;
-  const url = `${API_BASE}/api/attendance/export?format=pdf${sessionId ? `&session_id=${sessionId}` : ''}`;
-  window.open(url, '_blank');
-});
-
-document.getElementById('exportExcelBtn').addEventListener('click', () => {
-  const sessionId = document.getElementById('sessionSelect').value;
-  const url = `${API_BASE}/api/attendance/export?format=xlsx${sessionId ? `&session_id=${sessionId}` : ''}`;
-  window.open(url, '_blank');
-});
-
-// ---------- Load Page Data ----------
-function loadPageData(page) {
-  switch (page) {
-    case 'dashboard': loadDashboard(); break;
-    case 'students': loadStudents(); break;
-    case 'attendance': loadAttendance(); break;
-    case 'reports': loadReports(); break;
-  }
-}
-
-// Initial load
-showPage('dashboard-page');
-loadPageData('dashboard');
+// Initialization
+(async function init() {
+  showPage("dashboard");
+  await fetchStudents();
+  await fetchActiveSession();
+  await fetchAttendance();
+  await fetchSessions();
+})();

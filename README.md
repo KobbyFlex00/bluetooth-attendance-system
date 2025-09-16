@@ -1,71 +1,71 @@
-# bluetooth-attendance-system
-Manual roll calls waste time, proxy attendance is common. A Bluetooth-based attendance web app that automates roll calls, supports manual marking, and generates reports.
->>>>>>> 4bb7dc3274f69a6056a2f6567686b8deebb5aa86
-=======
 # Bluetooth-Based Automated Classroom Attendance System
 
-A professional, responsive web application for automated classroom attendance logging using Bluetooth simulation.
+## Overview
+This project is a professional, responsive web application for automated classroom attendance using simulated Bluetooth detection. It includes a Python Flask backend with SQLite database and a modern responsive frontend using Bootstrap.
 
 ## Features
-
-- **Student Management**: Import students via CSV, view list, add manually.
-- **Attendance Logging**: Automated via Bluetooth simulation or manual input.
-- **Session Management**: Start/end sessions, prevent duplicates per session/day.
-- **Reports**: Export attendance to PDF, Excel, or CSV; view summary stats with charts.
-- **Responsive UI**: Works on desktop and mobile using Bootstrap.
+- Student management with CSV import and manual addition
+- Attendance logging via simulated Bluetooth scan or manual input
+- Session management with real-time attendance tracking
+- Export attendance reports as PDF and Excel
+- Responsive UI with Dashboard, Students, Attendance, and Reports pages
 
 ## Tech Stack
+- Backend: Python, Flask, SQLite
+- Frontend: HTML, CSS, JavaScript, Bootstrap
+- Exports: reportlab (PDF), openpyxl (Excel)
 
-- **Backend**: Python, Flask, SQLite, reportlab (PDF), openpyxl (Excel)
-- **Frontend**: HTML, CSS, JavaScript, Bootstrap, Chart.js
+## Deployment
 
-## Setup Instructions
+### Backend on Render
+1. Create a free account at [Render](https://render.com).
+2. Click "New" > "Web Service".
+3. Connect your GitHub repository containing this project.
+4. Set the following:
+   - **Runtime**: Python 3
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python app.py`
+   - **Root Directory**: `python_backend`
+5. Add environment variable: `FLASK_ENV=production`
+6. Deploy the service. Note the generated URL (e.g., `https://your-app.onrender.com`).
 
-1. **Clone or Download** the project.
+### Frontend on Vercel
+1. Create a free account at [Vercel](https://vercel.com).
+2. Click "New Project" and connect your GitHub repository.
+3. Set the root directory to `web`.
+4. Vercel will auto-detect as static site. Deploy.
+5. After deployment, note the Vercel URL (e.g., `https://your-frontend.vercel.app`).
+6. Update `web/js/app.js`: Change `API_BASE` from `http://localhost:5000` to your Render backend URL (e.g., `https://your-app.onrender.com`).
+7. Redeploy the frontend on Vercel to apply the API_BASE change.
 
-2. **Install Dependencies**:
-   - Navigate to `python_backend/` directory.
-   - Install Python packages:
-     ```
-     pip install -r requirements.txt
-     ```
+### Alternative: Serve Frontend via Backend
+- If deploying backend only, the frontend is served at the backend URL.
+- No separate frontend deployment needed, but less optimal for performance.
 
-3. **Run the Backend**:
-   - In `python_backend/` directory:
-     ```
-     python app.py
-     ```
-   - Backend runs on `http://127.0.0.1:5000`.
+## Running Locally
+1. Create a Python virtual environment:
+   ```
+   python -m venv venv
+   venv\Scripts\activate  # Windows
+   source venv/bin/activate  # macOS/Linux
+   ```
+2. Install dependencies:
+   ```
+   pip install -r python_backend/requirements.txt
+   ```
+3. Run the backend:
+   ```
+   python python_backend/app.py
+   ```
+4. Open `web/index.html` in a browser.
+5. Update `API_BASE` in `web/js/app.js` to `http://localhost:5000`.
 
-4. **Open the Frontend**:
-   - Open `web/index.html` in a browser, or access via backend at `http://127.0.0.1:5000`.
-
-5. **Demo**:
-   - Upload a CSV with student data (columns: Name, Student ID, MAC).
-   - Start a session.
-   - Simulate Bluetooth scan or manually log attendance.
-   - View reports and export.
-
-## API Endpoints
-
-- `GET /api/students`: List students
-- `POST /api/students`: Add student (JSON: name, student_id, mac)
-- `POST /api/students/upload`: Upload CSV (JSON: csv)
-- `POST /api/attendance`: Manual attendance (JSON: student_id or name)
-- `GET /api/attendance`: List attendance (query params: session_id, date_from, date_to)
-- `GET /api/attendance/export`: Export (format: csv/pdf/xlsx)
-- `GET /api/session`: Get active session
-- `POST /api/session/start`: Start session (JSON: name)
-- `POST /api/session/end`: End session
-- `GET /api/sessions`: List all sessions
-- `GET /api/reports/summary`: Summary stats (session_id or date)
+## Testing
+- Test all API endpoints using tools like Postman or Curl.
+- Test frontend pages for responsiveness and functionality.
+- Verify Bluetooth simulation, manual attendance, CSV import, and report exports.
 
 ## Notes
-
-- Bluetooth scanning uses Web Bluetooth API (Chrome required for real devices; simulation for demo).
-- Data stored in SQLite (`python_backend/data/attendance.db`).
-- CSV file: `python_backend/data/cleaned_class_list.csv`.
-=======
-# bluetooth-attendance-system
-Manual roll calls waste time, proxy attendance is common. A Bluetooth-based attendance web app that automates roll calls, supports manual marking, and generates reports.
->>>>>>> 4bb7dc3274f69a6056a2f6567686b8deebb5aa86
+- Ensure CORS is enabled on backend for frontend domain.
+- SQLite database file is located in `python_backend/data/attendance.db`.
+- For any issues, check console logs and backend terminal output.
