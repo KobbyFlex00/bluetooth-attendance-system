@@ -1,24 +1,23 @@
-# TODO List for Bluetooth Attendance System
+# TODO List for Converting Frontend to React.js
 
-## Backend Updates
-- [x] Add requirements.txt with dependencies (Flask, flask-cors, reportlab, openpyxl)
-- [x] Update app.py: Add /api/students GET/POST endpoints
-- [x] Update app.py: Add /api/attendance POST for manual logging
-- [x] Update app.py: Add /api/reports/summary GET for stats
-- [x] Update app.py: Modify /api/attendance/export to support PDF and Excel
+## Setup React App
+- [x] Create new React app in "react-frontend" directory using npx create-react-app
+- [x] Install dependencies: react-router-dom, bootstrap, chart.js, axios
+- [x] Copy web/css/styles.css to react-frontend/src/
 
-## Frontend Updates
-- [x] Update index.html: Add Bootstrap CDN, nav tabs, sections for Dashboard/Students/Attendance/Reports, modals
-- [x] Update styles.css: Integrate Bootstrap, add responsive styles
-- [x] Update app.js: Change API_BASE to local, add functions for students management, manual attendance, reports, chart
+## Convert Components
+- [x] Create App.js: BrowserRouter with Routes for Dashboard, Students, Attendance, Reports
+- [x] Create Navbar component: Nav tabs with Link
+- [x] Create Dashboard component: Summary cards (total students, today's attendance, active session)
+- [x] Create Students component: Table, CSV upload, search, add student modal
+- [x] Create Attendance component: Session controls, attendance table, Bluetooth scan, manual mark modal
+- [x] Create Reports component: Session select, summary chart, export buttons
+- [x] Convert app.js logic to React hooks: useState for state, useEffect for API calls, fetch or axios
 
-## Other
-- [x] Clean up duplicate directory python_backend/python_backend/
-- [x] Add README.md with setup instructions
-
-## Testing
-- [x] Install Python dependencies
-- [x] Run backend locally
-- [x] Test endpoints with Postman or browser
-- [x] Open frontend, test UI responsiveness
-- [x] Test Bluetooth simulation, manual logging, exports
+## Integrate and Test
+- [x] Import Bootstrap CSS and JS in index.html
+- [x] Handle modals with Bootstrap or React Bootstrap
+- [x] Update API_BASE to local backend
+- [ ] Run npm start, test routing and UI
+- [ ] Ensure UI matches original HTML
+- [ ] Test API integration with backend

@@ -268,9 +268,59 @@ exportBtn.addEventListener("click", () => {
 });
 
 // Bluetooth scan (simulated)
+function isWebBluetoothSupported() {
+  return navigator.bluetooth !== undefined;
+}
+
+function updateBluetoothUI() {
+  const bluetoothSupported = isWebBluetoothSupported();
+  const errorMsgId = "bluetoothSupportErrorMsg";
+  let errorMsgEl = document.getElementById(errorMsgId);
+
+  if (!bluetoothSupported) {
+    if (!errorMsgEl) {
+      errorMsgEl = document.createElement("div");
+      errorMsgEl.id = errorMsgId;
+      errorMsgEl.style.color = "red";
+      errorMsgEl.style.marginTop = "10px";
+      errorMsgEl.textContent = "Web Bluetooth is not supported on your device or browser. Please use a supported device or browser.";
+      startScanBtn.parentNode.insertBefore(errorMsgEl, startScanBtn.nextSibling);
+    }
+    startScanBtn.disabled = true;
+  } else {
+    if (errorMsgEl) {
+      errorMsgEl.remove();
+    }
+    startScanBtn.disabled = false;
+  }
+}
+
 startScanBtn.addEventListener("click", async () => {
+  if (!isWebBluetoothSupported()) {
+    alert("Web Bluetooth is not supported on your device or browser.");
+    return;
+  }
   alert("Bluetooth scanning simulation not implemented yet.");
 });
+
+// Call updateBluetoothUI on initialization and when attendance page is shown
+const originalShowPage = showPage;
+showPage = function(page) {
+  originalShowPage(page);
+  if (page === "attendance") {
+    updateBluetoothUI();
+  }
+};
+
+// Initialization
+(async function init() {
+  showPage("dashboard");
+  await fetchStudents();
+  await fetchActiveSession();
+  await fetchAttendance();
+  await fetchSessions();
+  updateBluetoothUI();
+})();
 
 // Manual mark attendance modal
 manualMarkBtn.addEventListener("click", () => {

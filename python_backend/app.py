@@ -15,14 +15,6 @@ from openpyxl import Workbook
 app = Flask(__name__)
 CORS(app)
 
-import json
-from flask import send_file
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-import openpyxl
-from openpyxl.utils import get_column_letter
-from io import BytesIO
-
 # ---------------- Robust paths (absolute) ----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))          # .../PRJ_GROUP5/python_backend
 DATA_DIR = os.path.join(BASE_DIR, "data")                      # .../PRJ_GROUP5/python_backend/data
