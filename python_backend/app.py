@@ -15,6 +15,14 @@ from openpyxl import Workbook
 app = Flask(__name__)
 CORS(app)
 
+import json
+from flask import send_file
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import openpyxl
+from openpyxl.utils import get_column_letter
+from io import BytesIO
+
 # ---------------- Robust paths (absolute) ----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))          # .../PRJ_GROUP5/python_backend
 DATA_DIR = os.path.join(BASE_DIR, "data")                      # .../PRJ_GROUP5/python_backend/data
@@ -136,7 +144,7 @@ def load_class_list():
                     name = get_val(row, "name", "full_name", "full name")
                     sid = get_val(row, "student_id", "student id", "id")
 
-                mac = get_val(row, "MAC", "MAC Address", "mac_address") if has_mac else get_val(row, "MAC", "MAC Address", "mac_address")
+                mac = get_val(row, "MAC", "MAC Address", "mac_address") if has_mac else ""
 
                 if name and sid:
                     class_list.append({"Name": name, "Student ID": sid, "MAC": mac})
@@ -240,6 +248,11 @@ def validate_scan():
     name       = (data.get('name') or '').strip()
     mac_addr   = (data.get('mac_address') or '').strip()
 
+    print(f"[DEBUG] Validation request: student_id={student_id}, name={name}, mac_addr={mac_addr}")
+    print(f"[DEBUG] Loaded class_list count: {len(class_list)}")
+    if len(class_list) > 0:
+        print(f"[DEBUG] First 3 students: {class_list[:3]}")
+
     def matches(s):
         return (
             (student_id and s['Student ID'] == student_id) or
@@ -249,6 +262,7 @@ def validate_scan():
 
     matched = next((s for s in class_list if matches(s)), None)
     if not matched:
+        print("[DEBUG] No matching student found")
         return jsonify({"status": "invalid"}), 404
 
     now = datetime.now().isoformat(timespec="seconds")
@@ -645,4 +659,6 @@ def serve_frontend_file(filename):
 
 # ---------------- Entrypoint ----------------
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    # Explicitly disable debug mode for production
+    app.run(debug=False, use_reloader=False, host='0.0.0.0', port=port)
