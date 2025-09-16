@@ -1,5 +1,6 @@
 import csv
 import os
+import random
 import sqlite3
 from io import StringIO, BytesIO
 from datetime import datetime, date
@@ -229,32 +230,20 @@ def api_end_session():
 @app.route("/api/validate", methods=["POST"])
 def validate_scan():
     """
-    Validates by student_id OR name OR mac_address.
+    Simulates Bluetooth scanning by randomly selecting a student from the class list.
     Rules:
       - If a session is active: only one log per student per session.
       - If no active session: only one log per student per day.
     On (first) success, logs attendance with a timestamp.
     """
-    data = request.get_json(silent=True) or {}
-    student_id = (data.get('student_id') or '').strip()
-    name       = (data.get('name') or '').strip()
-    mac_addr   = (data.get('mac_address') or '').strip()
-
-    print(f"[DEBUG] Validation request: student_id={student_id}, name={name}, mac_addr={mac_addr}")
+    print(f"[DEBUG] Simulating Bluetooth scan...")
     print(f"[DEBUG] Loaded class_list count: {len(class_list)}")
     if len(class_list) > 0:
         print(f"[DEBUG] First 3 students: {class_list[:3]}")
 
-    def matches(s):
-        return (
-            (student_id and s['Student ID'] == student_id) or
-            (name and s['Name'].lower() == name.lower()) or
-            (mac_addr and s['MAC'] and s['MAC'].lower() == mac_addr.lower())
-        )
-
-    matched = next((s for s in class_list if matches(s)), None)
+    matched = random.choice(class_list) if class_list else None
     if not matched:
-        print("[DEBUG] No matching student found")
+        print("[DEBUG] No students in class list")
         return jsonify({"status": "invalid"}), 404
 
     now = datetime.now().isoformat(timespec="seconds")
